@@ -147,7 +147,7 @@ docker rm fastapi-container
 | DELETE | `/items/complaint/{id}` | Delete a complaint |
 | DELETE | `/items/complaint/{id}/media` | Delete complaint media |
 
-📚 **API Documentation**: [http://localhost:8000/docs](http://localhost:8000/docs)
+📚 **API Documentation**: [http://localhost:8000/items/docs](http://localhost:8000/items/docs)
 
 ## 🧠 Architecture
 
