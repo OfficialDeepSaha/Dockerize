@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Search Complaints - Rail Sathi Complaint System{% endblock %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="material-icons" style="vertical-align: middle; margin-right: 0.75rem; font-size: 1.75rem; color: var(--primary-color);">search</i>
+            Search Complaints
+        </h2>
+    </div>
+    <div class="card-body">
+        <div class="form-row">
+            <div class="form-col animate__animated animate__fadeIn animate__delay-1s">
+                <div class="card" style="background: linear-gradient(to right bottom, #ffffff, #f9fafb);">
+                    <div class="card-header" style="background: rgba(51, 97, 255, 0.03);">
+                        <h3 class="card-title">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary-color);">tag</i>
+                            Search by Complaint ID
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="search-complaint-form">
+                            <div class="form-group">
+                                <label for="search-complaint-id" class="form-label">Complaint ID</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--primary-color); color: white;">
+                                        <i class="material-icons">numbers</i>
+                                    </span>
+                                    <input type="number" id="search-complaint-id" class="form-control" placeholder="Enter Complaint ID" required>
+                                </div>
+                            </div>
+                            <div class="form-group mt-3">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">search</i> Search
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-col animate__animated animate__fadeIn animate__delay-1s">
+                <div class="card" style="background: linear-gradient(to right bottom, #ffffff, #f9fafb);">
+                    <div class="card-header" style="background: rgba(105, 65, 198, 0.03);">
+                        <h3 class="card-title">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--secondary-color);">calendar_month</i>
+                            Search by Date & Mobile
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="search-date-form">
+                            <div class="form-group">
+                                <label for="search-date" class="form-label">Date (YYYY-MM-DD)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--secondary-color); color: white;">
+                                        <i class="material-icons">calendar_today</i>
+                                    </span>
+                                    <input type="date" id="search-date" class="form-control date-picker" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="search-mobile" class="form-label">Mobile Number</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background-color: var(--secondary-color); color: white;">
+                                        <i class="material-icons">phone</i>
+                                    </span>
+                                    <input type="text" id="search-mobile" class="form-control" placeholder="Enter Mobile Number" pattern="[0-9]{10}" required>
+                                </div>
+                            </div>
+                            <div class="form-group mt-3">
+                                <button type="submit" class="btn btn-primary w-100" style="background-color: var(--secondary-color); border-color: var(--secondary-color);">
+                                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">search</i> Search
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if complaints %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title">Search Results</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for complaint in complaints %}
+                    <tr>
+                        <td>{{ complaint.data.complain_id }}</td>
+                        <td>{{ complaint.data.name }}</td>
+                        <td>{{ complaint.data.mobile_number }}</td>
+                        <td>{{ complaint.data.complain_type }}</td>
+                        <td>
+                            {% if complaint.data.complain_status == 'pending' %}
+                                <span class="badge" style="background-color: #f39c12; color: white; padding: 3px 8px; border-radius: 4px;">Pending</span>
+                            {% elif complaint.data.complain_status == 'in_progress' %}
+                                <span class="badge" style="background-color: #3498db; color: white; padding: 3px 8px; border-radius: 4px;">In Progress</span>
+                            {% elif complaint.data.complain_status == 'resolved' %}
+                                <span class="badge" style="background-color: #2ecc71; color: white; padding: 3px 8px; border-radius: 4px;">Resolved</span>
+                            {% elif complaint.data.complain_status == 'closed' %}
+                                <span class="badge" style="background-color: #95a5a6; color: white; padding: 3px 8px; border-radius: 4px;">Closed</span>
+                            {% else %}
+                                <span class="badge" style="background-color: #7f8c8d; color: white; padding: 3px 8px; border-radius: 4px;">{{ complaint.data.complain_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ complaint.data.complain_date }}</td>
+                        <td>
+                            <a href="/items/complaint/{{ complaint.data.complain_id }}" class="btn btn-sm btn-primary">View</a>
+                            <a href="/items/complaint/{{ complaint.data.complain_id }}/edit" class="btn btn-sm btn-warning">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

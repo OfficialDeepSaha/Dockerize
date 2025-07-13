@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Complaint - Rail Sathi Complaint System{% endblock %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="material-icons" style="vertical-align: middle; margin-right: 0.75rem; font-size: 1.75rem; color: var(--primary-color);">add_circle</i>
+            Create New Complaint
+        </h2>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info animate__animated animate__fadeIn animate__delay-1s" style="background-color: rgba(51, 97, 255, 0.1); color: var(--primary-color); border: none;">
+            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">info</i>
+            Fill in the details below to submit a new railway complaint. Fields marked with * are required.
+        </div>
+        
+        <form id="create-complaint-form" action="/rs_microservice/complaint/add" method="POST" enctype="multipart/form-data" class="needs-validation animate__animated animate__fadeIn animate__delay-1s" novalidate>
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">person</i>
+                            Name*
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--primary-color); color: white;">
+                                <i class="material-icons">person</i>
+                            </span>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="mobile_number" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">phone</i>
+                            Mobile Number*
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--primary-color); color: white;">
+                                <i class="material-icons">phone</i>
+                            </span>
+                            <input type="text" id="mobile_number" name="mobile_number" class="form-control" pattern="[0-9]{10}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="pnr_number" class="form-label">PNR Number</label>
+                        <input type="text" id="pnr_number" name="pnr_number" class="form-control">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="is_pnr_validated" class="form-label">PNR Validation Status</label>
+                        <select id="is_pnr_validated" name="is_pnr_validated" class="form-control">
+                            <option value="not-attempted">Not Attempted</option>
+                            <option value="validated">Validated</option>
+                            <option value="invalid">Invalid</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_type" class="form-label">Complaint Type*</label>
+                        <select id="complain_type" name="complain_type" class="form-control" required>
+                            <option value="">Select Complaint Type</option>
+                            <option value="cleanliness">Cleanliness</option>
+                            <option value="food_quality">Food Quality</option>
+                            <option value="staff_behavior">Staff Behavior</option>
+                            <option value="delay">Train Delay</option>
+                            <option value="ac_not_working">AC Not Working</option>
+                            <option value="water_supply">Water Supply</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_date" class="form-label">Complaint Date*</label>
+                        <input type="date" id="complain_date" name="complain_date" class="form-control date-picker" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="date_of_journey" class="form-label">Date of Journey</label>
+                        <input type="date" id="date_of_journey" name="date_of_journey" class="form-control date-picker">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_status" class="form-label">Complaint Status</label>
+                        <select id="complain_status" name="complain_status" class="form-control">
+                            <option value="pending">Pending</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="train_number" class="form-label">Train Number</label>
+                        <input type="text" id="train_number" name="train_number" class="form-control">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="train_name" class="form-label">Train Name</label>
+                        <input type="text" id="train_name" name="train_name" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="coach" class="form-label">Coach</label>
+                        <input type="text" id="coach" name="coach" class="form-control">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="berth_no" class="form-label">Berth Number</label>
+                        <input type="number" id="berth_no" name="berth_no" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="complain_description" class="form-label">Complaint Description*</label>
+                <textarea id="complain_description" name="complain_description" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="rail_sathi_complain_media_files" class="form-label">Upload Media Files (Images/Videos)</label>
+                <input type="file" id="rail_sathi_complain_media_files" name="rail_sathi_complain_media_files" class="form-control file-upload" multiple accept="image/*,video/*">
+                <div id="rail_sathi_complain_media_files-preview" class="media-preview"></div>
+            </div>
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Submit Complaint</button>
+                <a href="/items" class="btn btn-danger">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        submitComplaintForm('create-complaint-form', 'POST', '/items');
+    });
+</script>
+{% endblock %}

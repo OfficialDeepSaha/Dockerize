@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rail Sathi Complaint System{% endblock %}</title>
+    <!-- Modern CSS Framework -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Animation Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        :root {
+            --primary-color: #3361FF;
+            --secondary-color: #6941C6;
+            --accent-color: #00D0C5;
+            --success-color: #17B26A;
+            --warning-color: #F79009;
+            --danger-color: #F04438;
+            --light-bg: #F9FAFB;
+            --dark-bg: #101828;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light-bg);
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        /* Modern Header Styling */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+        }
+        
+        .header h1 {
+            font-weight: 700;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Modern Navigation */
+        .nav {
+            background-color: white;
+            padding: 0.75rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .nav .container {
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-item {
+            color: #555;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-right: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-item i {
+            margin-right: 0.5rem;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(51, 97, 255, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Card Styling */
+        .card {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        /* Form Styling */
+        .form-control, .btn {
+            border-radius: 6px;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(51, 97, 255, 0.25);
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        /* Button Styling */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #2451E6;
+            border-color: #2451E6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(51, 97, 255, 0.3);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #E03421;
+            border-color: #E03421;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(240, 68, 56, 0.3);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning-color);
+            border-color: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #E07F00;
+            border-color: #E07F00;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(247, 144, 9, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Table Styling */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+        
+        .table th {
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+        }
+        
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            vertical-align: middle;
+        }
+        
+        .table tbody tr {
+            transition: background-color 0.3s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        /* Badge Styling */
+        .badge {
+            font-weight: 500;
+            padding: 0.35em 0.8em;
+            border-radius: 6px;
+            font-size: 0.75em;
+        }
+        
+        /* Alert Styling */
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .alert-danger {
+            background-color: rgba(240, 68, 56, 0.1);
+            color: var(--danger-color);
+        }
+        
+        /* Media Preview */
+        .media-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .media-item {
+            border-radius: 8px;
+            overflow: hidden;
+            width: 150px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .media-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .media-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .file-icon {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.05);
+            font-weight: 500;
+            color: #555;
+        }
+        
+        /* Footer Styling */
+        footer {
+            background-color: white;
+            color: #555;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Custom Animation Classes */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .form-col {
+                width: 100%;
+            }
+            
+            .card-header {
+                padding: 1rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header animate__animated animate__fadeIn">
+        <div class="container">
+            <h1 class="animate__animated animate__fadeInLeft">Rail Sathi Complaint Management</h1>
+        </div>
+    </header>
+    
+    <nav class="nav animate__animated animate__fadeInDown">
+        <div class="container">
+            <a href="/items" class="nav-item {% if request.url.path == '/items' %}active{% endif %}">
+                <i class="material-icons">home</i> Home
+            </a>
+            <a href="/items/complaint/new" class="nav-item {% if request.url.path == '/items/complaint/new' %}active{% endif %}">
+                <i class="material-icons">add_circle</i> New Complaint
+            </a>
+            <a href="/items/search" class="nav-item {% if request.url.path == '/items/search' %}active{% endif %}">
+                <i class="material-icons">search</i> Search Complaints
+            </a>
+        </div>
+    </nav>
+    
+    <main class="container py-4 animate__animated animate__fadeIn animate__delay-1s">
+        <div id="alert-container">
+            {% if error %}
+            <div class="alert alert-danger animate__animated animate__fadeIn">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">error</i>
+                {{ error }}
+            </div>
+            {% endif %}
+        </div>
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <p>&copy; 2025 Rail Sathi Complaint System</p>
+                    <p><small>Your Reliable Railway Complaint Partner</small></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Animation on scroll library -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <!-- Custom Scripts -->
+    <script src="{{ url_for('static', path='/js/scripts.js') }}"></script>
+    
+    <script>
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate elements that come into view
+            const animateElements = () => {
+                const elements = document.querySelectorAll('.card, .form-group, .table');
+                elements.forEach(element => {
+                    if (isElementInViewport(element) && !element.classList.contains('fade-in')) {
+                        element.classList.add('fade-in');
+                    }
+                });
+            };
+            
+            // Check if element is in viewport
+            const isElementInViewport = (el) => {
+                const rect = el.getBoundingClientRect();
+                return (
+                    rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                );
+            };
+            
+            // Run on load and scroll
+            animateElements();
+            window.addEventListener('scroll', animateElements);
+            
+            // Add smooth hover effect to buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('mouseover', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                button.addEventListener('mouseout', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

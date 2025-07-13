@@ -15,13 +15,28 @@ load_dotenv()
 
 print("DB User:", os.getenv("POSTGRES_USER"))
 
+# Function to determine the correct PostgreSQL host
+def get_postgres_host():
+    """Dynamically determine PostgreSQL host based on environment"""
+    # Try to connect to "postgres" host (Docker Compose environment)
+    import socket
+    try:
+        # Short timeout for quick check
+        socket.create_connection(("postgres", 5432), timeout=1)
+        logger.info("Running in Docker Compose environment, using postgres host")
+        return os.getenv('POSTGRES_HOST_COMPOSE', 'postgres')
+    except (socket.timeout, socket.error):
+        # If connection fails, we're likely in standalone Docker
+        logger.info("Running in standalone Docker environment, using host.docker.internal")
+        return os.getenv('POSTGRES_HOST_DOCKER', 'host.docker.internal')
+
 # Database configuration
 DB_CONFIG = {
-    'host': os.getenv('POSTGRES_HOST', 'localhost'),
+    'host': get_postgres_host(),
     'port': int(os.getenv('POSTGRES_PORT', 5432)),
-    'user': os.getenv('POSTGRES_USER', 'postgres'),
-    'password': os.getenv('POSTGRES_PASSWORD', 'password'),
-    'database': os.getenv('POSTGRES_DB', 'rail_sathi_db')
+    'user': os.getenv('POSTGRES_USER', ''),
+    'password': os.getenv('POSTGRES_PASSWORD', ''),
+    'database': os.getenv('POSTGRES_DB', '')
 }
 
 def get_db_connection():

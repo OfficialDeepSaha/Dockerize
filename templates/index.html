@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Rail Sathi Complaint System{% endblock %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h2 class="card-title">Welcome to Rail Sathi Complaint Management System</h2>
+    </div>
+    <div class="card-body">
+        <div class="animate__animated animate__fadeIn animate__delay-1s">
+            <p class="lead">Use this system to manage railway complaints efficiently. You can create new complaints, search for existing ones, update their status, and manage complaint media.</p>
+        </div>
+        
+        <div class="mt-5 animate__animated animate__fadeIn animate__delay-1s">
+            <h3><i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary-color);">flash_on</i>Quick Actions</h3>
+            <div class="form-row mt-4">
+                <div class="form-col">
+                    <div class="card" style="background: linear-gradient(135deg, #f9f9f9, #ffffff);">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="material-icons" style="font-size: 3rem; color: var(--primary-color);">add_circle</i>
+                            </div>
+                            <h4>Create New Complaint</h4>
+                            <p>Submit a new complaint about railway services.</p>
+                            <a href="/items/complaint/new" class="btn btn-primary mt-3">
+                                <i class="material-icons" style="vertical-align: middle; font-size: 1rem; margin-right: 0.5rem;">create</i> Create Complaint
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="card" style="background: linear-gradient(135deg, #f9f9f9, #ffffff);">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="material-icons" style="font-size: 3rem; color: var(--secondary-color);">search</i>
+                            </div>
+                            <h4>Search Complaints</h4>
+                            <p>Find complaints by ID, date, or mobile number.</p>
+                            <a href="/items/search" class="btn btn-primary mt-3">
+                                <i class="material-icons" style="vertical-align: middle; font-size: 1rem; margin-right: 0.5rem;">search</i> Search Complaints
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-5 animate__animated animate__fadeIn animate__delay-2s">
+            <div class="card" style="background-color: rgba(51, 97, 255, 0.03); border: 1px solid rgba(51, 97, 255, 0.1);">
+                <div class="card-body">
+                    <h3><i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary-color);">search</i>Quick Search by Complaint ID</h3>
+                    <form id="search-complaint-form" class="mt-4">
+                        <div class="form-row align-items-center">
+                            <div class="form-col">
+                                <div class="form-group">
+                                    <input type="number" id="search-complaint-id" class="form-control form-control-lg" placeholder="Enter Complaint ID" required>
+                                </div>
+                            </div>
+                            <div class="form-col" style="flex: 0 0 auto;">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="material-icons" style="vertical-align: middle; font-size: 1rem; margin-right: 0.5rem;">search</i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

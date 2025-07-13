@@ -46,6 +46,41 @@ def send_plain_mail(subject: str, message: str, from_: str, to: List[str]):
         return False
 
 
+def send_html_mail(subject: str, html_content: str, from_: str, to: List[str]):
+    """Send HTML formatted email"""
+    try:
+        # Filter valid emails
+        valid_emails = [email for email in to if email and not email.startswith("noemail")]
+        
+        if not valid_emails:
+            logging.info("All emails were skipped - no valid recipients.")
+            return True
+
+        # Create email message with HTML subtype
+        email = MessageSchema(
+            subject=subject,
+            recipients=valid_emails,
+            body=html_content,
+            subtype="html"  # Set subtype to HTML
+        )
+
+        # Send email using FastMail
+        fm = FastMail(conf)
+        
+        # Use asyncio to run the async send_message method
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(fm.send_message(email))
+        loop.close()
+        
+        logging.info(f"HTML email sent successfully to: {', '.join(valid_emails)}")
+        return True
+        
+    except Exception as e:
+        logging.exception(f"Error in send_html_mail: {repr(e)}")
+        return False
+
+
 def send_passenger_complain_email(complain_details: Dict):
     """Send complaint email to war room users"""
     war_room_user_in_depot = []
@@ -111,7 +146,7 @@ def send_passenger_complain_email(complain_details: Dict):
         
         # Updated query to get train access users with better filtering
         assigned_users_query = """
-            SELECT u.email, u.id, u.first_name, u.last_name, ta.train_details
+            SELECT u.email, u.id, u.full_name, ta.train_details
             FROM user_onboarding_user u
             JOIN trains_trainaccess ta ON ta.user_id = u.id
             WHERE ta.train_details IS NOT NULL 
@@ -207,49 +242,430 @@ def send_passenger_complain_email(complain_details: Dict):
             "start_date_of_journey": journey_start_date,
             'site_name': 'RailSathi',
         }
-
-        # Load and render template
-        template_path = os.path.join("templates", "complaint_creation_email_template.txt")
+      
         
-        if not os.path.exists(template_path):
+        
             # Fallback to inline template if file doesn't exist
-            template_content = """
-                Passenger Complaint Submitted
-
-                A new passenger complaint has been received.
-
-                Complaint ID   : {{ complain_id }}
-                Submitted At  : {{ created_at }}
-
-                Passenger Info:
-                ---------------
-                Name           : {{ passenger_name }}
-                Phone Number   : {{ user_phone_number }}
-
-                Travel Details:
-                ---------------
-                Train Number   : {{ train_no }}
-                Train Name     : {{ train_name }}
-                Coach          : {{ coach }}
-                Berth Number   : {{ berth }}
-                PNR            : {{ pnr }}
-
-                Complaint Details:
-                ------------------
-                Description    : {{ description }}
-
-                Train Depot    : {{ train_depo }}
-                
-                Please take necessary action at the earliest.
-
-                This is an automated notification. Please do not reply to this email.
-
-                Regards,  
-                Team RailSathi
+        # Define the template content directly
+        template_content = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Rail Sathi Complaint Notification</title>
+                    <style>
+                        /* Import Google Fonts */
+                        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+                        
+                        /* CSS Variables */
+                        :root {
+                             --primary-color: #0056D6;
+                             --primary-light: #EBF3FF;
+                             --primary-dark: #003CA8;
+                             --danger-color: #DC2626;
+                             --danger-light: #FEF2F2;
+                             --success-color: #16A34A;
+                             --dark-text: #1E293B;
+                             --medium-text: #64748B;
+                             --light-text: #94A3B8;
+                             --border-color: #E2E8F0;
+                             --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                             --box-radius: 8px;
+                             --accent-color: #FF6B35;
+                             --bg-light: #F8FAFC;
+                             --info-blue: #0EA5E9;
+                             --info-light: #F0F9FF;
+                             --warning-color: #F59E0B;
+                             --warning-light: #FEF3C7;
+                             --row-spacing: 8px;
+                        }
+                        
+                        body {
+                            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                            line-height: 1.5;
+                            color: var(--dark-text);
+                            background-color: #f5f8fb;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        * {
+                            box-sizing: border-box;
+                        }
+                        
+                        .container {
+                            max-width: 600px;
+                            margin: 0px auto 0;
+                            background-color: white;
+                            border-radius: 16px;
+                            overflow: hidden;
+                            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+                            border: 1px solid rgba(0, 0, 0, 0.04);
+                        }
+                        
+                        .header {
+                            display: none !important;
+                            height: 0 !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            overflow: hidden !important;
+                        }
+                        
+                        .header p {
+                            margin: 8px 0 0;
+                            opacity: 0.9;
+                            font-weight: 300;
+                            font-size: 16px;
+                            position: relative;
+                            z-index: 2;
+                        }
+                        
+                        .header::before {
+                            content: '';
+                            position: absolute;
+                            top: -50px;
+                            right: -50px;
+                            width: 200px;
+                            height: 200px;
+                            border-radius: 50%;
+                            background: rgba(255,255,255,0.1);
+                            z-index: 1;
+                        }
+                        
+                        .header::after {
+                            content: '';
+                            position: absolute;
+                            bottom: -80px;
+                            left: -80px;
+                            width: 250px;
+                            height: 250px;
+                            border-radius: 50%;
+                            background: rgba(255,255,255,0.05);
+                            z-index: 1;
+                        }
+                        
+                        .content {
+                            padding: 0px 32px 16px !important;
+                        }
+                        
+                        .greeting {
+                            font-size: 16px;
+                            margin-top: 0;
+                            margin-bottom: 18px;
+                            color: var(--medium-text);
+                            font-weight: 500;
+                        }
+                        
+                        .alert-tag {
+                            display: inline-block;
+                            background-color: #fef2f2;
+                            color: #b91c1c;
+                            border: 1px solid #fecaca;
+                            border-radius: 4px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            padding: 4px 12px;
+                            margin-bottom: 16px;
+                        }
+                        
+                        .complaint-summary {
+                            background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+                            border-radius: var(--box-radius);
+                            padding: 24px 28px;
+                            margin-bottom: 32px;
+                            border-left: 4px solid var(--accent-color);
+                            position: relative;
+                            text-align: center;
+                            backdrop-filter: blur(10px);
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+                        }
+                        
+                        .complaint-id-badge {
+                            background: var(--accent-color);
+                            color: white;
+                            font-weight: 600;
+                            padding: 6px 14px;
+                            border-radius: 50px;
+                            font-size: 14px;
+                            display: inline-block;
+                            box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+                            margin-bottom: 8px;
+                            letter-spacing: 0.5px;
+                        }
+                        
+                        .complaint-summary h2 {
+                            margin: 0 0 12px 0;
+                            font-size: 22px;
+                            font-weight: 600;
+                            color: var(--dark-text);
+                        }
+                        
+                        .timestamp {
+                            color: var(--medium-text);
+                            font-size: 14px;
+                            margin: 0;
+                            font-weight: 500;
+                        }
+                        
+                        .card {
+                            background-color: white;
+                            border-radius: 10px;
+                            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+                            margin-bottom: 28px;
+                            overflow: hidden;
+                            border: 1px solid rgba(0, 0, 0, 0.05);
+                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                        }
+                        
+                        .card:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+                        }
+                        
+                        .card-header {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            padding: 16px 20px;
+                            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                            background: linear-gradient(to right, var(--primary-light), #f0f7ff);
+                        }
+                        
+                        .card-icon {
+                            font-size: 22px;
+                            width: 42px;
+                            height: 42px;
+                            border-radius: 50%;
+                            background: var(--primary-color);
+                            color: white;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            box-shadow: 0 4px 10px rgba(0, 86, 214, 0.3);
+                        }
+                        
+                        .card-title {
+                            font-size: 18px;
+                            font-weight: 600;
+                            margin: 0;
+                            color: var(--primary-dark);
+                            letter-spacing: -0.2px;
+                        }
+                        
+                        .info-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 20px;
+                        }
+                        
+                        .info-label {
+                            text-transform: uppercase;
+                            font-size: 13px;
+                            font-weight: 600;
+                            color: var(--primary-dark);
+                            letter-spacing: 0.5px;
+                            display: block;
+                        }
+                        
+                        .info-value {
+                            font-size: 15px;
+                            color: var(--dark-text);
+                            font-weight: 500;
+                            letter-spacing: -0.2px;
+                        }
+                        
+                        .complaint-description {
+                            padding: 20px;
+                        }
+                        
+                        .description-box {
+                            background-color: #F9FAFB;
+                            border-radius: var(--box-radius);
+                            padding: 20px 24px;
+                            font-size: 15px;
+                            line-height: 1.6;
+                            color: var(--dark-text);
+                            border-left: 3px solid var(--accent-color);
+                            white-space: pre-wrap;
+                            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+                            position: relative;
+                        }
+                        
+                        .button-container {
+                            text-align: center;
+                            margin-top: 36px;
+                            margin-bottom: 24px;
+                        }
+                        
+                        .action-button {
+                            background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+                            color: white;
+                            font-weight: 600;
+                            text-decoration: none;
+                            padding: 14px 28px;
+                            border-radius: 30px;
+                            font-size: 16px;
+                            display: inline-block;
+                            box-shadow: 0 4px 12px rgba(0, 86, 214, 0.25);
+                            transition: transform 0.3s ease, box-shadow 0.3s ease;
+                            letter-spacing: 0.3px;
+                        }
+                        
+                        .action-button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 16px rgba(0, 86, 214, 0.35);
+                        }
+                        
+                        .footer {
+                            margin-top: 40px;
+                        }
+                        
+                        .footer-divider {
+                            height: 1px;
+                            background: linear-gradient(to right, transparent, var(--border-color), transparent);
+                            margin-bottom: 20px;
+                        }
+                        
+                        .footer-content {
+                            color: var(--light-text);
+                            font-size: 13px;
+                            text-align: center;
+                            line-height: 1.5;
+                        }
+                    </style>
+                </head>
+                <body margin="0" marginwidth="0" marginheight="0" topmargin="0" leftmargin="0" style="margin:0;padding:0;">
+                    <div style="display:none;max-height:0px;overflow:hidden;font-size:1px;color:transparent;line-height:1px;">New Passenger Complaint submitted by {{ passenger_name }} on {{ complaint_date }}</div>
+                    <div class="container" style="margin:0 auto;padding:0;">
+                        <div class="header">
+                            <h1>Rail Sathi Complaint Alert</h1>
+                            <p>Immediate attention required</p>
+                        </div>
+                        
+                        <div class="content">
+                            
+                            <div class="complaint-summary">
+                                <div class="complaint-id-badge">Complaint #{{ complain_id }}</div>
+                                <h2>New Passenger Complaint</h2>
+                                <p class="timestamp">Submitted: {{ created_at }}</p>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-icon">👤</div>
+                                    <h3 class="card-title">Passenger Information</h3>
+                                </div>
+                                <div style="padding: 20px;">
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">NAME</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ passenger_name }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">PHONE NUMBER</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ user_phone_number }}</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-icon">🚆</div>
+                                    <h3 class="card-title">Journey Details</h3>
+                                </div>
+                                <div style="padding: 20px;">
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0 8px;">
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">TRAIN NUMBER</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ train_no }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">TRAIN NAME</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ train_name }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">COACH</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ coach }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">BERTH NUMBER</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ berth }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">PNR</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ pnr }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 12px 15px; width: 180px; vertical-align: middle; background-color: #f0f7ff; border-radius: 6px 0 0 6px; border-left: 3px solid var(--primary-color);">
+                                            <span class="info-label">TRAIN DEPOT</span>
+                                        </td>
+                                        <td style="padding: 12px 15px; vertical-align: middle; background-color: #fafafa; border-radius: 0 6px 6px 0;">
+                                            <span class="info-value">{{ train_depo }}</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <div class="card-icon">📝</div>
+                                    <h3 class="card-title">Complaint Description</h3>
+                                </div>
+                                <div class="complaint-description">
+                                    <div class="description-box">{{ description }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="button-container">
+                                <a href="{{ dashboard_link }}" class="action-button">View in Dashboard</a>
+                            </div>
+                            
+                            <p style="text-align: center; margin-top: 32px; margin-bottom: 20px; color: var(--medium-text); font-size: 15px;">
+                                Thank you for your prompt attention to this matter.<br>
+                                <span style="font-weight: 600; color: var(--dark-text);">Team Rail Sathi</span>
+                            </p>
+                        </div>
+                        
+                        <footer class="footer">
+                            <div class="footer-divider"></div>
+                            <div class="footer-content">
+                                <p>This is an automated notification. Please do not reply to this email.</p>
+                                <p>&copy; {{ current_year }} S2 Corporation. All rights reserved.</p>
+                            </div>
+                        </footer>
+                    </div>
+                </body>
+                </html>
             """
-        else:
-            with open(template_path, 'r', encoding='utf-8') as f:
-                template_content = f.read()
         
         template = Template(template_content)
         message = template.render(context)
@@ -277,12 +693,13 @@ def send_passenger_complain_email(complain_details: Dict):
             email = user.get('email', '')
             if email and not email.startswith("noemail") and '@' in email:
                 try:
-                    success = send_plain_mail(subject, message, EMAIL_SENDER, [email])
+                    # Use HTML email function instead of plain text
+                    success = send_html_mail(subject, message, EMAIL_SENDER, [email])
                     if success:
                         emails_sent += 1
-                        logging.info(f"Email sent to {email} for complaint {complain_details['complain_id']}")
+                        logging.info(f"HTML email sent to {email} for complaint {complain_details['complain_id']}")
                     else:
-                        logging.error(f"Failed to send email to {email}")
+                        logging.error(f"Failed to send HTML email to {email}")
                 except Exception as e:
                     logging.error(f"Error sending email to {email}: {e}")
 
@@ -293,7 +710,6 @@ def send_passenger_complain_email(complain_details: Dict):
             logging.info(f"No users found for depot {train_depo} and train {train_no} in complaint {complain_details['complain_id']}")
             return {"status": "success", "message": "No users found for this depot and train"}
         
-        return {"status": "success", "message": f"Emails sent to {emails_sent} users"}
         return {"status": "success", "message": f"Emails sent to {emails_sent} users"}
         
     except Exception as e:

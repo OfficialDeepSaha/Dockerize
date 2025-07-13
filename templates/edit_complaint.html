@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Complaint - Rail Sathi Complaint System{% endblock %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="material-icons" style="vertical-align: middle; margin-right: 0.75rem; font-size: 1.75rem; color: var(--primary-color);">edit</i>
+            Edit Complaint #{{ complaint.complain_id }}
+        </h2>
+    </div>
+    <div class="card-body">
+        <form id="edit-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data" class="needs-validation animate__animated animate__fadeIn animate__delay-1s" novalidate>
+            <input type="hidden" name="_method" value="PATCH">
+            
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="name" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">person</i>
+                            Name*
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--primary-color); color: white;">
+                                <i class="material-icons">person</i>
+                            </span>
+                            <input type="text" id="name" name="name" class="form-control" value="{{ complaint.name }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="mobile_number" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">phone</i>
+                            Mobile Number*
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--primary-color); color: white;">
+                                <i class="material-icons">phone</i>
+                            </span>
+                            <input type="text" id="mobile_number" name="mobile_number" class="form-control" value="{{ complaint.mobile_number }}" pattern="[0-9]{10}" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="pnr_number" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">confirmation_number</i>
+                            PNR Number
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--secondary-color); color: white;">
+                                <i class="material-icons">confirmation_number</i>
+                            </span>
+                            <input type="text" id="pnr_number" name="pnr_number" class="form-control" value="{{ complaint.pnr_number or '' }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="is_pnr_validated" class="form-label">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem; color: var(--primary-color);">verified</i>
+                            PNR Validation Status
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text" style="background-color: var(--secondary-color); color: white;">
+                                <i class="material-icons">verified</i>
+                            </span>
+                            <select id="is_pnr_validated" name="is_pnr_validated" class="form-control">
+                                <option value="not-attempted" {% if complaint.is_pnr_validated == 'not-attempted' %}selected{% endif %}>Not Attempted</option>
+                                <option value="validated" {% if complaint.is_pnr_validated == 'validated' %}selected{% endif %}>Validated</option>
+                                <option value="invalid" {% if complaint.is_pnr_validated == 'invalid' %}selected{% endif %}>Invalid</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_type" class="form-label">Complaint Type*</label>
+                        <select id="complain_type" name="complain_type" class="form-control" required>
+                            <option value="">Select Complaint Type</option>
+                            <option value="cleanliness" {% if complaint.complain_type == 'cleanliness' %}selected{% endif %}>Cleanliness</option>
+                            <option value="food_quality" {% if complaint.complain_type == 'food_quality' %}selected{% endif %}>Food Quality</option>
+                            <option value="staff_behavior" {% if complaint.complain_type == 'staff_behavior' %}selected{% endif %}>Staff Behavior</option>
+                            <option value="delay" {% if complaint.complain_type == 'delay' %}selected{% endif %}>Train Delay</option>
+                            <option value="ac_not_working" {% if complaint.complain_type == 'ac_not_working' %}selected{% endif %}>AC Not Working</option>
+                            <option value="water_supply" {% if complaint.complain_type == 'water_supply' %}selected{% endif %}>Water Supply</option>
+                            <option value="other" {% if complaint.complain_type == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_date" class="form-label">Complaint Date*</label>
+                        <input type="date" id="complain_date" name="complain_date" class="form-control date-picker" value="{{ complaint.complain_date }}" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="complain_status" class="form-label">Complaint Status</label>
+                        <select id="complain_status" name="complain_status" class="form-control">
+                            <option value="pending" {% if complaint.complain_status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="in_progress" {% if complaint.complain_status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="resolved" {% if complaint.complain_status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if complaint.complain_status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="date_of_journey" class="form-label">Date of Journey</label>
+                        <input type="date" id="date_of_journey" name="date_of_journey" class="form-control date-picker" value="{{ complaint.date_of_journey or '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="train_number" class="form-label">Train Number</label>
+                        <input type="text" id="train_number" name="train_number" class="form-control" value="{{ complaint.train_number or '' }}">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="train_name" class="form-label">Train Name</label>
+                        <input type="text" id="train_name" name="train_name" class="form-control" value="{{ complaint.train_name or '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="coach" class="form-label">Coach</label>
+                        <input type="text" id="coach" name="coach" class="form-control" value="{{ complaint.coach or '' }}">
+                    </div>
+                </div>
+                <div class="form-col">
+                    <div class="form-group">
+                        <label for="berth_no" class="form-label">Berth Number</label>
+                        <input type="number" id="berth_no" name="berth_no" class="form-control" value="{{ complaint.berth_no or '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="complain_description" class="form-label">Complaint Description*</label>
+                <textarea id="complain_description" name="complain_description" class="form-control" rows="4" required>{{ complaint.complain_description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="rail_sathi_complain_media_files" class="form-label">Upload Additional Media Files (Images/Videos)</label>
+                <input type="file" id="rail_sathi_complain_media_files" name="rail_sathi_complain_media_files" class="form-control file-upload" multiple accept="image/*,video/*">
+                <div id="rail_sathi_complain_media_files-preview" class="media-preview"></div>
+            </div>
+
+            {% if complaint.rail_sathi_complain_media_files %}
+            <div class="form-group mt-3">
+                <label class="form-label">Current Media Files</label>
+                <div class="media-preview">
+                    {% for media in complaint.rail_sathi_complain_media_files %}
+                    <div class="media-item">
+                        {% if media.media_type and media.media_type.startswith('image/') %}
+                            <img src="{{ media.media_url }}" alt="Complaint Media">
+                        {% else %}
+                            <div class="file-icon">FILE</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <small class="form-text text-muted">To delete media files, use the delete media option on the view page.</small>
+            </div>
+            {% endif %}
+
+            <div class="form-group mt-4">
+                <button type="submit" class="btn btn-primary">Update Complaint</button>
+                <a href="/items/complaint/{{ complaint.complain_id }}" class="btn btn-danger">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Full Replace (PUT)</h3>
+    </div>
+    <div class="card-body">
+        <p>Use this option to completely replace the complaint data instead of updating it partially.</p>
+        <form id="replace-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_method" value="PUT">
+            <input type="hidden" name="name" value="{{ complaint.name }}">
+            <input type="hidden" name="mobile_number" value="{{ complaint.mobile_number }}">
+            <button type="button" class="btn btn-warning" onclick="confirmReplace()">Replace Complaint (Full Update)</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle edit complaint form submission (PATCH)
+        const editForm = document.getElementById('edit-complaint-form');
+        if (editForm) {
+            editForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                if (!editForm.checkValidity()) {
+                    editForm.classList.add('was-validated');
+                    return;
+                }
+                
+                const formData = new FormData(editForm);
+                
+                fetch(editForm.action, {
+                    method: 'PATCH',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = `/items/complaint/${data.data.complain_id}?message=Complaint+updated+successfully&type=success`;
+                })
+                .catch(error => {
+                    alert('Error updating complaint: ' + error);
+                });
+            });
+        }
+    });
+    
+    // Function to handle full replace (PUT)
+    function confirmReplace() {
+        if (confirm('Are you sure you want to completely replace this complaint? This will overwrite all fields with the current values.')) {
+            const replaceForm = document.getElementById('replace-complaint-form');
+            const editForm = document.getElementById('edit-complaint-form');
+            
+            // Copy all form fields from the edit form to the replace form
+            const formData = new FormData(editForm);
+            for (const [name, value] of formData.entries()) {
+                if (name !== '_method') {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    replaceForm.appendChild(input);
+                }
+            }
+            
+            // Submit the replace form
+            replaceForm.submit();
+        }
+    }
+</script>
+{% endblock %}

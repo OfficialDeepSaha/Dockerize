@@ -1,5 +1,7 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Depends, Request
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +9,7 @@ from datetime import datetime, date, time
 import asyncio
 import threading
 import logging
+import os
 from services import (
     create_complaint, get_complaint_by_id, get_complaints_by_date,
     update_complaint, delete_complaint, delete_complaint_media,
@@ -18,9 +21,16 @@ app = FastAPI(
     description="API for handling rail complaints",
     version="1.0.0",
     openapi_url="/rs_microservice/openapi.json",  # Add the prefix here
-    docs_url="/rs_microservice/docs",             # Add the prefix here
-    redoc_url="/rs_microservice/redoc"            # Add the prefix here (optional)
+    docs_url="/items/docs",             # Add the prefix here
+    redoc_url="/items/redoc"            # Add the prefix here (optional)
 )
+
+# Mount static files directory
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Setup Jinja2 templates
+base_dir = os.path.dirname(os.path.abspath(__file__))
+templates = Jinja2Templates(directory=os.path.join(base_dir, "templates"))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +51,113 @@ app.add_middleware(
 @app.get("/rs_microservice")
 async def root():
     return {"message": "Rail Sathi Microservice is running"}
+
+@app.get("/rs_microservice/ui")
+async def redirect_ui_root():
+    return RedirectResponse(url="/items")
+
+
+@app.get("/rs_microservice/ui/{full_path:path}")
+async def redirect_ui_full(full_path: str):
+    return RedirectResponse(url=f"/items/{full_path}")
+
+@app.get("/items", response_class=HTMLResponse)
+async def ui_home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/items/complaint/new", response_class=HTMLResponse)
+async def ui_new_complaint(request: Request):
+    return templates.TemplateResponse("create_complaint.html", {"request": request})
+
+
+@app.get("/items/complaint/{complain_id}", response_class=HTMLResponse)
+async def ui_view_complaint(request: Request, complain_id: int):
+    try:
+        complaint = get_complaint_by_id(complain_id)
+        if not complaint:
+            return templates.TemplateResponse("index.html", {
+                "request": request,
+                "error": f"Complaint with ID {complain_id} not found"
+            })
+        
+        return templates.TemplateResponse("view_complaint.html", {
+            "request": request,
+            "complaint": complaint
+        })
+    except Exception as e:
+        logger.error(f"Error getting complaint {complain_id}: {str(e)}")
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "error": "Error retrieving complaint"
+        })
+
+@app.get("/items/complaint/{complain_id}/edit", response_class=HTMLResponse)
+async def ui_edit_complaint(request: Request, complain_id: int):
+    try:
+        complaint = get_complaint_by_id(complain_id)
+        if not complaint:
+            return templates.TemplateResponse("index.html", {
+                "request": request,
+                "error": f"Complaint with ID {complain_id} not found"
+            })
+        
+        return templates.TemplateResponse("edit_complaint.html", {
+            "request": request,
+            "complaint": complaint
+        })
+    except Exception as e:
+        logger.error(f"Error getting complaint {complain_id}: {str(e)}")
+        return templates.TemplateResponse("index.html", {
+            "request": request,
+            "error": "Error retrieving complaint"
+        })
+
+@app.get("/items/search", response_class=HTMLResponse)
+async def ui_search(request: Request):
+    return templates.TemplateResponse("search.html", {"request": request})
+
+@app.get("/items/complaints/{date_str}", response_class=HTMLResponse)
+async def ui_search_by_date(request: Request, date_str: str, mobile_number: Optional[str] = None):
+    try:
+        # Validate date format
+        try:
+            complaint_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return templates.TemplateResponse("search.html", {
+                "request": request,
+                "error": "Invalid date format. Use YYYY-MM-DD."
+            })
+        
+        if not mobile_number:
+            return templates.TemplateResponse("search.html", {
+                "request": request,
+                "error": "Mobile number is required"
+            })
+        
+        complaints = get_complaints_by_date(complaint_date, mobile_number)
+        
+        # Wrap each complaint in the expected response format
+        response_list = []
+        for complaint in complaints:
+            response_list.append({
+                "message": "Complaint retrieved successfully",
+                "data": complaint
+            })
+        
+        return templates.TemplateResponse("search.html", {
+            "request": request,
+            "complaints": response_list,
+            "search_date": date_str,
+            "search_mobile": mobile_number
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting complaints by date {date_str}: {str(e)}")
+        return templates.TemplateResponse("search.html", {
+            "request": request,
+            "error": "Error retrieving complaints"
+        })
 
 
 class RailSathiComplainMediaResponse(BaseModel):

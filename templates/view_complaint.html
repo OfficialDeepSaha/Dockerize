@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}View Complaint - Rail Sathi Complaint System{% endblock %}
+
+{% block content %}
+<div class="card animate__animated animate__fadeInUp">
+    <div class="card-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 class="card-title">
+                <i class="material-icons" style="vertical-align: middle; margin-right: 0.75rem; font-size: 1.75rem; color: var(--primary-color);">visibility</i>
+                Complaint Details
+            </h2>
+            <div>
+                <a href="/items/complaint/{{ complaint.complain_id }}/edit" class="btn btn-primary animate__animated animate__pulse animate__infinite animate__slower">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">edit</i>
+                    Edit Complaint
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info animate__animated animate__fadeIn animate__delay-1s" style="background-color: rgba(51, 97, 255, 0.1); color: var(--primary-color); border-left: 4px solid var(--primary-color); border-top: none; border-right: none; border-bottom: none; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem;">info</i>
+                    <strong>Complaint ID:</strong> {{ complaint.complain_id }}
+                </div>
+                <div>
+                    {% if complaint.complain_status == 'pending' %}
+                        <span class="badge" style="background-color: var(--warning-color); color: white; padding: 5px 10px; border-radius: 4px;">Pending</span>
+                    {% elif complaint.complain_status == 'in_progress' %}
+                        <span class="badge" style="background-color: var(--primary-color); color: white; padding: 5px 10px; border-radius: 4px;">In Progress</span>
+                    {% elif complaint.complain_status == 'resolved' %}
+                        <span class="badge" style="background-color: var(--success-color); color: white; padding: 5px 10px; border-radius: 4px;">Resolved</span>
+                    {% elif complaint.complain_status == 'closed' %}
+                        <span class="badge" style="background-color: var(--secondary-color); color: white; padding: 5px 10px; border-radius: 4px;">Closed</span>
+                    {% else %}
+                        <span class="badge" style="background-color: var(--secondary-color); color: white; padding: 5px 10px; border-radius: 4px;">{{ complaint.complain_status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4 animate__animated animate__fadeIn animate__delay-1s" style="border-left: 4px solid var(--primary-color);">
+                    <div class="card-header" style="background-color: rgba(51, 97, 255, 0.05);">
+                        <h3 class="card-title mb-0">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary-color);">person</i>
+                            Personal Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">person</i>
+                                Name:
+                            </div>
+                            <div class="details-value">{{ complaint.name }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">phone</i>
+                                Mobile Number:
+                            </div>
+                            <div class="details-value">{{ complaint.mobile_number }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">confirmation_number</i>
+                                PNR Number:
+                            </div>
+                            <div class="details-value">{{ complaint.pnr_number or 'Not provided' }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">airline_seat_recline_normal</i>
+                                Berth Number:
+                            </div>
+                            <div class="details-value">{{ complaint.berth_no or 'Not provided' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card mb-4 animate__animated animate__fadeIn animate__delay-1s" style="border-left: 4px solid var(--secondary-color);">
+                    <div class="card-header" style="background-color: rgba(75, 75, 75, 0.05);">
+                        <h3 class="card-title mb-0">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--secondary-color);">train</i>
+                            Travel Details
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">edit</i>
+                                Train Name:
+                            </div>
+                            <div class="details-value">{{ complaint.train_name or 'Not provided' }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">tag</i>
+                                Train Number:
+                            </div>
+                            <div class="details-value">{{ complaint.train_number or 'Not provided' }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">event</i>
+                                Complaint Date:
+                            </div>
+                            <div class="details-value">{{ complaint.complain_date }}</div>
+                        </div>
+                        <div class="details-row">
+                            <div class="details-label">
+                                <i class="material-icons" style="font-size: 1rem; vertical-align: middle; margin-right: 0.25rem; color: var(--secondary-color);">category</i>
+                                Complaint Type:
+                            </div>
+                            <div class="details-value">{{ complaint.complain_type }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4 animate__animated animate__fadeIn animate__delay-2s" style="border-left: 4px solid var(--accent-color);">
+            <div class="card-header" style="background-color: rgba(156, 39, 176, 0.05);">
+                <h3 class="card-title mb-0">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--accent-color);">description</i>
+                    Complaint Description
+                </h3>
+            </div>
+            <div class="card-body">
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 3px solid var(--accent-color);">
+                    <p style="font-size: 1rem; line-height: 1.6;">{{ complaint.complain_description }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if complaint.rail_sathi_complain_media_files %}
+        <div class="card mb-4 animate__animated animate__fadeIn animate__delay-2s" style="border-left: 4px solid var(--success-color);">
+            <div class="card-header" style="background-color: rgba(46, 204, 113, 0.05);">
+                <h3 class="card-title mb-0">
+                    <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: var(--success-color);">perm_media</i>
+                    Media Attachments
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="media-preview">
+                    {% for media in complaint.rail_sathi_complain_media_files %}
+                    <div class="media-item animate__animated animate__fadeIn" style="box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+                        {% if media.media_type and media.media_type.startswith('image/') %}
+                            <a href="{{ media.media_url }}" target="_blank" style="display: block; cursor: pointer;">
+                                <img src="{{ media.media_url }}" alt="Complaint Media" style="width: 100%; height: auto; object-fit: cover;">
+                            </a>
+                        {% else %}
+                            <a href="{{ media.media_url }}" target="_blank" style="display: block; cursor: pointer;">
+                                <div class="file-icon" style="background-color: var(--secondary-color); color: white; display: flex; align-items: center; justify-content: center; height: 120px;">
+                                    <i class="material-icons" style="font-size: 3rem;">insert_drive_file</i>
+                                </div>
+                            </a>
+                        {% endif %}
+                        <div style="padding: 10px; text-align: center;">
+                            <a href="{{ media.media_url }}" target="_blank" class="btn btn-sm btn-primary" style="margin-top: 5px;">
+                                <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem;">visibility</i>
+                                View
+                            </a>
+                            <a href="{{ media.media_url }}" download class="btn btn-sm btn-secondary" style="margin-top: 5px; margin-left: 5px;">
+                                <i class="material-icons" style="vertical-align: middle; margin-right: 0.25rem; font-size: 1rem;">download</i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="form-group mt-4">
+            <label class="form-label">Created At</label>
+            <p>{{ complaint.created_at }}</p>
+        </div>
+
+        <div class="form-row mt-4">
+            <div class="form-col">
+                <a href="/items" class="btn btn-primary">Back to Home</a>
+            </div>
+            <div class="form-col text-right">
+                <div class="card mt-4 animate__animated animate__fadeIn animate__delay-3s" style="border: none; border-left: 4px solid var(--danger-color);">
+                    <div class="card-header" style="background-color: rgba(231, 76, 60, 0.1);">
+                        <h2 class="card-title" style="color: var(--danger-color);">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.75rem; font-size: 1.75rem;">delete_forever</i>
+                            Delete Complaint
+                        </h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning animate__animated animate__pulse animate__infinite animate__slow" role="alert" style="background-color: rgba(241, 196, 15, 0.1); color: #8a6d3b; border-left: 4px solid #f1c40f; border-top: none; border-right: none; border-bottom: none;">
+                            <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: #f1c40f;">warning</i>
+                            <strong>Warning:</strong> This action cannot be undone. All complaint data and associated media files will be permanently deleted.
+                        </div>
+                        <form id="delete-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" class="mt-4">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button type="button" class="btn btn-danger" onclick="confirmDelete()" style="display: flex; align-items: center; justify-content: center;">
+                                <i class="material-icons" style="margin-right: 0.5rem;">delete_forever</i>
+                                Delete Complaint
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <script>
+                function confirmDelete() {
+                    if (confirm('Are you sure you want to delete this complaint? This action cannot be undone.')) {
+                        document.getElementById('delete-complaint-form').submit();
+                    }
+                }
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if complaint.rail_sathi_complain_media_files %}
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Delete Media Files</h3>
+    </div>
+    <div class="card-body">
+        <form id="delete-media-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}/media" method="POST">
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="hidden" name="name" value="{{ complaint.name }}">
+            <input type="hidden" name="mobile_number" value="{{ complaint.mobile_number }}">
+            
+            <div class="form-group">
+                <label class="form-label">Select Media Files to Delete</label>
+                <div class="media-preview">
+                    {% for media in complaint.rail_sathi_complain_media_files %}
+                    <div class="form-check" style="margin-bottom: 10px;">
+                        <input class="form-check-input" type="checkbox" name="deleted_media_ids" value="{{ media.id }}" id="media-{{ media.id }}">
+                        <label class="form-check-label" for="media-{{ media.id }}">
+                            {% if media.media_type and media.media_type.startswith('image/') %}
+                                <img src="{{ media.media_url }}" alt="Complaint Media" style="width: 100px; height: 100px; object-fit: cover;">
+                            {% else %}
+                                <div class="file-icon" style="width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa; border: 1px solid #e9ecef;">FILE</div>
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-danger delete-media-btn">Delete Selected Media</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle delete complaint form submission
+        const deleteForm = document.getElementById('delete-complaint-form');
+        if (deleteForm) {
+            deleteForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                if (confirm('Are you sure you want to delete this complaint?')) {
+                    const formData = new FormData(deleteForm);
+                    
+                    fetch(deleteForm.action, {
+                        method: 'DELETE',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.href = '/items?message=Complaint+deleted+successfully&type=success';
+                    })
+                    .catch(error => {
+                        alert('Error deleting complaint: ' + error);
+                    });
+                }
+            });
+        }
+        
+        // Handle delete media form submission
+        const deleteMediaForm = document.getElementById('delete-media-form');
+        if (deleteMediaForm) {
+            deleteMediaForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const selectedMedia = document.querySelectorAll('input[name="deleted_media_ids"]:checked');
+                if (selectedMedia.length === 0) {
+                    alert('Please select at least one media file to delete');
+                    return;
+                }
+                
+                if (confirm('Are you sure you want to delete the selected media files?')) {
+                    const formData = new FormData(deleteMediaForm);
+                    
+                    fetch(deleteMediaForm.action, {
+                        method: 'DELETE',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        alert('Error deleting media files: ' + error);
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

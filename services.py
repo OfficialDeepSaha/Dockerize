@@ -6,9 +6,10 @@ import threading
 import re
 from datetime import datetime, date
 from typing import List, Dict, Optional, Any
-from google.cloud import storage
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 from PIL import Image
-from moviepy.editor import VideoFileClip
 from urllib.parse import unquote
 from database import get_db_connection, execute_query, execute_query_one
 from utils.email_utils import send_plain_mail, send_passenger_complain_email
@@ -22,20 +23,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Configuration from environment
-GCS_BUCKET_NAME = os.getenv('GCS_BUCKET_NAME', 'sanchalak-media-bucket1')
-PROJECT_ID = os.getenv('PROJECT_ID', 'sanchalak-423912')
-
-
-def get_gcs_client():
-    """Get authenticated GCS client using environment variables"""
-    try:
-        # storage.Client() will automatically use GOOGLE_APPLICATION_CREDENTIALS from .env
-        client = storage.Client(project=PROJECT_ID)
-        return client
-    except Exception as e:
-        print(f"Failed to create GCS client: {e}")
-        raise
+# Cloudinary configuration
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', 'your-cloud-name'),
+    api_key=os.getenv('CLOUDINARY_API_KEY', 'your-api-key'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET', 'your-api-secret')
+)
 
 def get_valid_filename(filename):
     """
@@ -51,75 +44,93 @@ def sanitize_timestamp(raw_timestamp):
     return get_valid_filename(decoded).replace(":", "_")
 
 def process_media_file_upload(file_content, file_format, complain_id, media_type):
-    """Process and upload media file to Google Cloud Storage"""
+    """Process and upload media file to Cloudinary"""
     try:
         created_at = datetime.now().strftime("%Y-%m-%d_%H:%M:%S.%f")
         unique_id = str(uuid.uuid4())[:5]
-        full_file_name = f"rail_sathi_complain_{complain_id}_{sanitize_timestamp(created_at)}_{unique_id}.{file_format}"
-
-        # Use the authenticated client
-        client = get_gcs_client()
-        bucket = client.bucket(GCS_BUCKET_NAME)
-        blob = None
+        full_file_name = f"rail_sathi_complain_{complain_id}_{sanitize_timestamp(created_at)}_{unique_id}"
+        folder_path = "rail_sathi_complain"
 
         if media_type == "image":
+            # Process image file
             file_stream = io.BytesIO(file_content)
             original_image = Image.open(file_stream)
             if original_image.mode == 'RGBA':
                 original_image = original_image.convert('RGB')
+            
+            # Save to a temporary BytesIO object
             new_file = io.BytesIO()
             original_image.save(new_file, format='JPEG')
             new_file.seek(0)
-            key = f"rail_sathi_complain_images/{full_file_name}"
-            blob = bucket.blob(key)
-            blob.upload_from_file(new_file, content_type='image/jpeg')
-            print(f"rail_sathi_complain_images Image uploaded: {full_file_name}")
+            
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                new_file,
+                public_id=f"{folder_path}/images/{full_file_name}",
+                resource_type="image",
+                folder="rail_sathi_complain_images"
+            )
+            print(f"Image uploaded to Cloudinary: {full_file_name}")
+            return upload_result['secure_url']
 
         elif media_type == "video":
             try:
-                temp_dir = "/tmp/rail_sathi_temp"
+                # Create temp directory if it doesn't exist
+                temp_dir = "./temp_rail_sathi"
                 os.makedirs(temp_dir, exist_ok=True)
                 
-                temp_file_path = os.path.join(temp_dir, full_file_name)
-                compressed_file_path = os.path.join(temp_dir, f"compressed_{full_file_name}")
-                
+                # Save the video to a temporary file
+                temp_file_path = os.path.join(temp_dir, f"{full_file_name}.{file_format}")
                 with open(temp_file_path, 'wb') as temp_file:
                     temp_file.write(file_content)
                 
-                clip = VideoFileClip(temp_file_path)
-                target_bitrate = '5000k'
-                try:
-                    clip.write_videofile(compressed_file_path, codec='libx264', bitrate=target_bitrate)
-                    clip.close()
-                except Exception as e:
-                    print(f"Error compressing video: {e}")
+                # Upload to Cloudinary
+                upload_result = cloudinary.uploader.upload(
+                    temp_file_path,
+                    public_id=f"{folder_path}/videos/{full_file_name}",
+                    resource_type="video",
+                    folder="rail_sathi_complain_videos"
+                )
                 
-                key = f"rail_sathi_complain_videos/{full_file_name}"
-                blob = bucket.blob(key)
-                with open(compressed_file_path, 'rb') as temp_file:
-                    blob.upload_from_file(temp_file, content_type='video/mp4')
-                print(f"rail_sathi_complain_videos Video uploaded: {full_file_name}")
-            except Exception as e:
-                print(f'Error while storing video: {repr(e)}')
-            finally:
-                if os.path.exists(compressed_file_path):
-                    os.remove(compressed_file_path)
-                if os.path.exists(temp_file_path):
+                # Clean up temp file
+                try:
                     os.remove(temp_file_path)
-
-        if blob:
-            try:
-                url = blob.public_url
-                print(f"Uploaded file URL: {url}")
-                return url
+                except Exception as e:
+                    print(f"Error removing temp file: {e}")
+                
+                print(f"Video uploaded to Cloudinary: {full_file_name}")
+                return upload_result['secure_url']
             except Exception as e:
-                print(f"Failed to get public URL: {e}")
-                return None
+                print(f"Error processing video: {e}")
+                raise
         else:
-            print("Upload failed (blob is None)")
-            return None
+            # For other file types
+            temp_dir = "./temp_rail_sathi"
+            os.makedirs(temp_dir, exist_ok=True)
+            
+            # Save to a temporary file
+            temp_file_path = os.path.join(temp_dir, f"{full_file_name}.{file_format}")
+            with open(temp_file_path, 'wb') as temp_file:
+                temp_file.write(file_content)
+            
+            # Upload to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                temp_file_path,
+                public_id=f"{folder_path}/files/{full_file_name}",
+                resource_type="raw",
+                folder="rail_sathi_complain_files"
+            )
+            
+            # Clean up temp file
+            try:
+                os.remove(temp_file_path)
+            except Exception as e:
+                print(f"Error removing temp file: {e}")
+            
+            print(f"File uploaded to Cloudinary: {full_file_name}")
+            return upload_result['secure_url']
     except Exception as e:
-        print(f"Error processing media file: {e}")
+        print(f"Error uploading file to Cloudinary: {e}")
         raise e
 
 def upload_file_thread(file_obj, complain_id, user):
@@ -168,7 +179,7 @@ def upload_file_thread(file_obj, complain_id, user):
             conn = get_db_connection()
             try:
                 query = """
-                    INSERT INTO rail_sathi_railsathicomplainmedia 
+                    INSERT INTO rail_sathi_complain_media 
                     (complain_id, media_type, media_url, created_by, created_at, updated_at)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """
@@ -228,7 +239,7 @@ async def upload_file_async(file_obj: UploadFile, complain_id: int, user: str):
             conn = get_db_connection()
             try:
                 query = """
-                    INSERT INTO rail_sathi_railsathicomplainmedia 
+                    INSERT INTO rail_sathi_complain_media 
                     (complain_id, media_type, media_url, created_by, created_at, updated_at)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """
@@ -276,27 +287,20 @@ def test_gcs_connection():
         return False
     
 def validate_and_process_train_data(complaint_data):
-    """Validate and process train data"""
-    conn = get_db_connection()
-    try:
-        if complaint_data.get('train_id'):
-            # Get train details by ID
-            query = "SELECT * FROM trains_traindetails WHERE id = %s"
-            train = execute_query_one(conn, query, (complaint_data['train_id'],))
-            if train:
-                complaint_data['train_number'] = train['train_no']
-                complaint_data['train_name'] = train['train_name']
-        elif complaint_data.get('train_number'):
-            # Get train details by number
-            query = "SELECT * FROM trains_traindetails WHERE train_no = %s"
-            train = execute_query_one(conn, query, (complaint_data['train_number'],))
-            if train:
-                complaint_data['train_id'] = train['id']
-                complaint_data['train_name'] = train['train_name']
-        
-        return complaint_data
-    finally:
-        conn.close()
+    """Validate and process train data in complaint"""
+    # Skip train details lookup since trains_traindetails table doesn't exist
+    # Just use the provided train information directly
+    
+    # Ensure train_number is a string
+    if complaint_data.get('train_number'):
+        complaint_data['train_number'] = str(complaint_data['train_number'])
+    
+    # If train_name is not provided but train_number is, set a default name
+    if complaint_data.get('train_number') and not complaint_data.get('train_name'):
+        complaint_data['train_name'] = f"Train #{complaint_data['train_number']}"
+    
+    # No need for database connection since we're not querying
+    return complaint_data
 
 def create_complaint(complaint_data):
     """Create a new complaint"""
@@ -330,7 +334,7 @@ def create_complaint(complaint_data):
         
         # Insert complaint - PostgreSQL version with RETURNING clause
         query = """
-            INSERT INTO rail_sathi_railsathicomplain 
+            INSERT INTO rail_sathi_complain 
             (pnr_number, is_pnr_validated, name, mobile_number, complain_type, 
              complain_description, complain_date, complain_status, train_id, 
              train_number, train_name, coach, berth_no, created_by, created_at, updated_at)
@@ -428,8 +432,8 @@ def get_complaint_by_id(complain_id: int):
     try:
         # Get complaint
         query = """
-            SELECT c.*, t.train_no, t.train_name, t."Depot" as train_depot
-            FROM rail_sathi_railsathicomplain c
+            SELECT c.*, t.train_no, COALESCE(t.train_name, c.train_name) AS train_name, t."Depot" as train_depot
+            FROM rail_sathi_complain c
             LEFT JOIN trains_traindetails t ON c.train_id = t.id
             WHERE c.complain_id = %s
         """
@@ -441,7 +445,7 @@ def get_complaint_by_id(complain_id: int):
         # Get media files
         media_query = """
             SELECT id, media_type, media_url, created_at, updated_at, created_by, updated_by
-            FROM rail_sathi_railsathicomplainmedia
+            FROM rail_sathi_complain_media
             WHERE complain_id = %s
         """
         media_files = execute_query(conn, media_query, (complain_id,))
@@ -457,8 +461,8 @@ def get_complaints_by_date(complain_date: date, mobile_number: str):
     conn = get_db_connection()
     try:
         query = """
-            SELECT c.*, t.train_no, t.train_name, t."Depot" as train_depot
-            FROM rail_sathi_railsathicomplain c
+            SELECT c.*, t.train_no, COALESCE(t.train_name, c.train_name) AS train_name, t."Depot" as train_depot
+            FROM rail_sathi_complain c
             LEFT JOIN trains_traindetails t ON c.train_id = t.id
             WHERE c.complain_date = %s AND c.mobile_number = %s
         """
@@ -468,7 +472,7 @@ def get_complaints_by_date(complain_date: date, mobile_number: str):
         for complaint in complaints:
             media_query = """
                 SELECT id, media_type, media_url, created_at, updated_at, created_by, updated_by
-                FROM rail_sathi_railsathicomplainmedia
+                FROM rail_sathi_complain_media
                 WHERE complain_id = %s
             """
             media_files = execute_query(conn, media_query, (complaint['complain_id'],))
@@ -517,7 +521,7 @@ def update_complaint(complain_id: int, update_data: dict):
         values.append(complain_id)
         
         query = f"""
-            UPDATE rail_sathi_railsathicomplain 
+            UPDATE rail_sathi_complain 
             SET {', '.join(update_fields)}
             WHERE complain_id = %s
         """
@@ -536,10 +540,10 @@ def delete_complaint(complain_id: int):
     try:
         # First delete media files
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM rail_sathi_railsathicomplainmedia WHERE complain_id = %s", (complain_id,))
+        cursor.execute("DELETE FROM rail_sathi_complain_media WHERE complain_id = %s", (complain_id,))
         
         # Then delete complaint
-        cursor.execute("DELETE FROM rail_sathi_railsathicomplain WHERE complain_id = %s", (complain_id,))
+        cursor.execute("DELETE FROM rail_sathi_complain WHERE complain_id = %s", (complain_id,))
         deleted_count = cursor.rowcount
         conn.commit()
         
@@ -556,7 +560,7 @@ def delete_complaint_media(complain_id: int, media_ids: List[int]):
         
         # PostgreSQL uses ANY() for IN clause with arrays
         query = """
-            DELETE FROM rail_sathi_railsathicomplainmedia 
+            DELETE FROM rail_sathi_complain_media 
             WHERE complain_id = %s AND id = ANY(%s)
         """
         
@@ -575,7 +579,7 @@ def validate_complaint_access(complain_id: int, user_name: str, mobile_number: s
     try:
         query = """
             SELECT created_by, mobile_number, complain_status 
-            FROM rail_sathi_railsathicomplain 
+            FROM rail_sathi_complain 
             WHERE complain_id = %s
         """
         complaint = execute_query_one(conn, query, (complain_id,))
