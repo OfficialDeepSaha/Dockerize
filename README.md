@@ -18,6 +18,7 @@
 - 🔄 **Smart Environment Detection** - Automatically detects Docker vs Docker Compose environments
 - 🔌 **Dynamic Host Configuration** - Intelligently connects to the appropriate database host
 - 🚀 **Zero-Config Deployment** - Just run and go with automatic database initialization
+- ⏱️ **wait-for-it.sh** - Handles database startup timing to prevent connection issues
 - 📤 **File Upload Support** - Handle complaint attachments and media effortlessly
 - 📊 **Swagger Documentation** - Beautiful API docs built-in
 - 🔄 **Hot Reloading** - Code changes reflect instantly in development
@@ -215,6 +216,23 @@ docker exec -i railsathi-postgres psql -U postgres -d railsathibe < 01-init-db.s
 - [ ] Kubernetes deployment manifests
 - [ ] Enhanced monitoring and logging
 - [ ] Performance optimization
+
+## 👁‍🗨 Design Decisions & Assumptions
+
+### Architectural Decisions
+
+- **SQL Scripts over ORM**: Direct SQL scripts for database initialization instead of an ORM to keep dependencies minimal.
+- **Smart Environment Detection**: Runtime detection of environment to support both standalone Docker and Docker Compose without configuration changes.
+- **File Storage**: Cloudinary for media files rather than local storage for better scaling and CDN benefits.
+- **Authentication**: Simple API key authentication used for this microservice scope.
+
+### Important Notes
+
+- **The Provided Assignment Repo is Built with FastAPI, NOT Django**: This project is implemented using FastAPI framework, not Django. Therefore, you CANNOT create a superuser using Django's `python manage.py createsuperuser` command as it does not exist in this project.
+- **No Django Admin Interface**: Since this is not a Django application, there is no Django admin interface available.
+- **No Superuser Creation Command**: User management is handled through SQL scripts (see `02-add_test_users.sql`) or API endpoints.
+- **Raw SQL**: Database schema is defined in raw SQL files, not through Django models or migrations.
+- **Test Data**: The application comes with test data for quick evaluation and testing.
 
 ## 📜 License
 
