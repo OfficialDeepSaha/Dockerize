@@ -11,7 +11,7 @@
         </h2>
     </div>
     <div class="card-body">
-        <form id="edit-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data" class="needs-validation animate__animated animate__fadeIn animate__delay-1s" novalidate>
+        <form id="edit-complaint-form" action="/rs_microservice/complaint/update/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data" class="needs-validation animate__animated animate__fadeIn animate__delay-1s" novalidate>
             <input type="hidden" name="_method" value="PATCH">
             
             <div class="form-row">
@@ -176,7 +176,7 @@
                         {% else %}
                             <div class="file-icon">FILE</div>
                         {% endif %}
-                    </div>
+                    </div> @
                     {% endfor %}
                 </div>
                 <small class="form-text text-muted">To delete media files, use the delete media option on the view page.</small>
@@ -197,7 +197,7 @@
     </div>
     <div class="card-body">
         <p>Use this option to completely replace the complaint data instead of updating it partially.</p>
-        <form id="replace-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data">
+        <form id="replace-complaint-form" action="/rs_microservice/complaint/update/{{ complaint.complain_id }}" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="_method" value="PUT">
             <input type="hidden" name="name" value="{{ complaint.name }}">
             <input type="hidden" name="mobile_number" value="{{ complaint.mobile_number }}">

@@ -99,6 +99,10 @@ The application uses Cloudinary for storing complaint media files. To set up you
 Run both the FastAPI application and PostgreSQL database:
 
 ```bash
+# Build and run docker compose
+docker-compose build --no-cache
+
+
 # Start services
 docker-compose up -d
 

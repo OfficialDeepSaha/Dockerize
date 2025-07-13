@@ -49,11 +49,16 @@ CREATE TABLE IF NOT EXISTS trains_traindetails (
 -- Create user onboarding tables
 CREATE TABLE IF NOT EXISTS user_onboarding_roles (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(50) NOT NULL UNIQUE,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Now this will work:
+INSERT INTO user_onboarding_roles (name, description)
+VALUES ('war room user', 'User responsible for handling complaints in war room')
+ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS user_onboarding_user (
     id SERIAL PRIMARY KEY,

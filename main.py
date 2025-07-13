@@ -272,6 +272,7 @@ async def get_complaints_by_date_endpoint(date_str: str, mobile_number: Optional
 
 @app.post("/rs_microservice/complaint/add", response_model=RailSathiComplainResponse)
 @app.post("/rs_microservice/complaint/add/", response_model=RailSathiComplainResponse)
+@app.post("/items/complaint/add", response_model=RailSathiComplainResponse)  # Added temporary route to catch misrouted requests
 async def create_complaint_endpoint_threaded(
     pnr_number: Optional[str] = Form(None),
     is_pnr_validated: Optional[str] = Form("not-attempted"),

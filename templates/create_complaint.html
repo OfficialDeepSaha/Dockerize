@@ -163,8 +163,14 @@
 
 {% block extra_js %}
 <script>
+    // Disable any JavaScript form handling, let the native form submission work
     document.addEventListener('DOMContentLoaded', function() {
-        submitComplaintForm('create-complaint-form', 'POST', '/items');
+        // Remove default event listeners added by global scripts
+        const form = document.getElementById('create-complaint-form');
+        if (form) {
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+        }
     });
 </script>
 {% endblock %}

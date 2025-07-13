@@ -20,11 +20,11 @@ BEGIN
     -- Insert test users
     -- S2 Admin
     INSERT INTO user_onboarding_user (username, email, full_name, mobile_number, user_type_id)
-    VALUES ('s2admin', 's2admin@example.com', 'S2 Admin User', '9876543210', s2_admin_id);
+    VALUES ('s2admin', 'deepsaha01896@gmail.com', 'S2 Admin User', '9876543210', s2_admin_id);
 
     -- Railway Admin
     INSERT INTO user_onboarding_user (username, email, full_name, mobile_number, user_type_id)
-    VALUES ('railadmin', 'railadmin@example.com', 'Railway Admin User', '9876543211', railway_admin_id);
+    VALUES ('railadmin', 'hiremeasadeveloper@gmail.com', 'Railway Admin User', '9876543211', railway_admin_id);
 
     -- War Room Users with different depots
     INSERT INTO user_onboarding_user (username, email, full_name, mobile_number, user_type_id, depot, train_number)

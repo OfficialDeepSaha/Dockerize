@@ -201,7 +201,7 @@
                             <i class="material-icons" style="vertical-align: middle; margin-right: 0.5rem; color: #f1c40f;">warning</i>
                             <strong>Warning:</strong> This action cannot be undone. All complaint data and associated media files will be permanently deleted.
                         </div>
-                        <form id="delete-complaint-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}" method="POST" class="mt-4">
+                        <form id="delete-complaint-form" action="/items/complaint/{{ complaint.complain_id }}" method="POST" class="mt-4">
                             <input type="hidden" name="_method" value="DELETE">
                             <button type="button" class="btn btn-danger" onclick="confirmDelete()" style="display: flex; align-items: center; justify-content: center;">
                                 <i class="material-icons" style="margin-right: 0.5rem;">delete_forever</i>
@@ -228,7 +228,7 @@
         <h3 class="card-title">Delete Media Files</h3>
     </div>
     <div class="card-body">
-        <form id="delete-media-form" action="/rs_microservice/complaint/{{ complaint.complain_id }}/media" method="POST">
+        <form id="delete-media-form" action="/items/complaint/{{ complaint.complain_id }}/media" method="POST">
             <input type="hidden" name="_method" value="DELETE">
             <input type="hidden" name="name" value="{{ complaint.name }}">
             <input type="hidden" name="mobile_number" value="{{ complaint.mobile_number }}">
